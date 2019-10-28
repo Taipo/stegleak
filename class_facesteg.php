@@ -296,21 +296,18 @@ class Face_Steg {
     }
     return true;
   }
-  function do_crypto( $string, $pass_code ) {
+  function do_crypto( $string, $key ) {
     if ( false === $this->validate_params( $string ) ) throw new Exception( 'Invlid params!' );
     $cipher_type    = $this->method;
-    $key            = pack( 'H*', $this->hashMake( 'sha512', $pass_code, false ) );
-    $ivlen          = openssl_cipher_iv_length( $cipher = $cipher_type );
-    $iv             = openssl_random_pseudo_bytes( $ivlen );
-    $ciphertext_raw = ( false !== strpos( $this->method, 'GCM' ) ) ? trim( openssl_encrypt( $string, $cipher, $key, OPENSSL_RAW_DATA, $iv, $tag ) ) : trim( openssl_encrypt( $string, $cipher, $key, OPENSSL_RAW_DATA, $iv ) );
+    $iv             = $this->get_iv();
+    $ciphertext_raw = ( false !== strpos( $this->method, 'GCM' ) ) ? trim( openssl_encrypt( $string, $cipher_type, $key, OPENSSL_RAW_DATA, $iv, $tag ) ) : trim( openssl_encrypt( $string, $cipher_type, $key, OPENSSL_RAW_DATA, $iv ) );
     $hmac           = hash_hmac( 'sha256', $ciphertext_raw, $key, $as_binary = true );
     $output         = base64_encode( $iv . $hmac . $ciphertext_raw );
     return ( false !== strpos( $this->method, 'GCM' ) ) ? base64_encode( $tag ) . ',' . $output : $output;
   }
-  function do_decrypto( $data, $pass_code ) {
+  function do_decrypto( $data, $key ) {
     if ( false === $this->validate_params( $data ) ) throw new Exception( 'Invlid params!' );
     $cipher_type        = $this->method;
-    $key                = pack( 'H*', $this->hashMake( 'sha512', $pass_code ) );
     if ( false !== strpos( $this->method, 'GCM' ) ) {
       $get_data           = explode( ',', $data );
       $tag                = base64_decode( $get_data[ 0 ] );
@@ -328,6 +325,9 @@ class Face_Steg {
       return $original_plaintext;
     }
   }
+  protected function get_iv() {
+       return openssl_random_pseudo_bytes( openssl_cipher_iv_length( $this->method ) );
+   }  
   public function validate_params( $data ) {
       if ( $data != null && $this->method != null ) {
           return true;
@@ -347,65 +347,8 @@ class Face_Steg {
    * 
    * @return string
    */
-  function getHash( $hashlen ) {
-    $hash = substr( $this->translation_str(), 0, $hashlen );
-    $thishash = $this->hashMake( $this->hashType, $hash );
-  return $hash;
+  function get_key( $hashlen ) {
+    return openssl_random_pseudo_bytes( $hashlen );
   }
-  function hashMake( $sType, $input, $withSalt = false ) {
-    $hashtype = $this->hashType( $sType );
-    if ( false !== $withSalt ) $pepper = base64_encode( ( ( function_exists( 'random_bytes' ) ) ? random_bytes( 64 ) : openssl_random_pseudo_bytes( 64 ) ) );
-    return hash( $hashtype, $this->pbkdf2( $hashtype, $input, ( ( false !== $withSalt ) ? $pepper : NULL ), 4096, 24, true ) );
-  }
-  function hashType( $sType ) {
-    foreach ( hash_algos() as $key => $val ) {
-      if ( $key == $sType ) {
-        return $val;
-      }
-    }
-    return;
-  }
-  function pbkdf2( $algorithm, $password, $salt, $count, $key_length, $raw_output = false ) {
-    $algorithm = strtolower( $algorithm );
-    if ( !in_array( $algorithm, hash_algos(), true ) )
-      die( 'PBKDF2 ERROR: Invalid hash algorithm.' );
-    if ( $count <= 0 || $key_length <= 0 )
-      die( 'PBKDF2 ERROR: Invalid parameters.' );
-    $hash_length = strlen( hash( $algorithm, "", true ) );
-    $block_count = ceil( $key_length / $hash_length );
-    $output      = "";
-    for ( $i = 1; $i <= $block_count; $i++ ) {
-      // $i encoded as 4 bytes, big endian.
-      $last = $salt . pack( "N", $i );
-      // first iteration
-      $last = $xorsum = hash_hmac( $algorithm, $last, $password, true );
-      // perform the other $count - 1 iterations
-    for ( $j = 1; $j < $count; $j++ ) {
-      $xorsum ^= ( $last = hash_hmac( $algorithm, $last, $password, true ) );
-    }
-      $output .= $xorsum;
-    }
-    if ( $raw_output )
-      return substr( $output, 0, $key_length );
-    else
-    return bin2hex( substr( $output, 0, $key_length ) );
-  }
-  function translation_str() {
-    # reseed every request
-    mt_srand( $this->kakano_tupokanoa() );
-    $translation_table = array_merge( range( '0', '9' ), range( 'A', 'Z' ), range( 'a', 'z' ) );
-    shuffle( $translation_table );
-    $tt1 = implode( '', $translation_table );
-    shuffle( $translation_table );
-    $tt2 = implode( '', $translation_table );
-    shuffle( $translation_table );
-    $tt3 = implode( '', $translation_table );    
-    return $tt1 . $tt2 . $tt3;
-  }
-  # random seed
-  function kakano_tupokanoa() {
-    $ran_string = abs( crc32( $this->hashMake( $this->hashType, ( hexdec( substr( sha1( microtime() ), -8 ) ) & 0x7fffffff ), true ) ) );
-    return ord( substr( $ran_string, 0, 1 ) ) << 24 | ord( substr( $ran_string, 1, 1 ) ) << 16 | ord( substr( $ran_string, 2, 1 ) ) << 8 | ord( substr( $ran_string, 3, 1 ) );
-  }  
 }
 ?>
