@@ -298,7 +298,7 @@ class Face_Steg {
     $ivlen          = openssl_cipher_iv_length( $cipher = $cipher_type );
     $iv             = openssl_random_pseudo_bytes( $ivlen );
     $padding        = ( strlen( $padding > 0 ) ) ? "\x00\x00" . openssl_random_pseudo_bytes( $padding ) : '';
-    $ciphertext_raw = openssl_encrypt( $string . $padding, $cipher, $key, OPENSSL_RAW_DATA, $iv );
+    $ciphertext_raw = openssl_encrypt( $string . $padding, $cipher, $key, OPENSSL_RAW_DATA | OPENSSL_ZERO_PADDING, $iv );
     $hmac           = hash_hmac( 'sha256', $ciphertext_raw, $key, $as_binary = true );
     return base64_encode( $iv . $hmac . $ciphertext_raw );
   }
@@ -310,11 +310,10 @@ class Face_Steg {
     $iv                 = substr( $ciphertext_dec, 0, $ivlen );
     $hmac               = substr( $ciphertext_dec, $ivlen, $sha2len = 32 );
     $ciphertext_raw     = substr( $ciphertext_dec, $ivlen + $sha2len );
-    $original_plaintext = openssl_decrypt( $ciphertext_raw, $cipher, $key, OPENSSL_RAW_DATA, $iv );
+    $original_plaintext = openssl_decrypt( $ciphertext_raw, $cipher, $key, OPENSSL_RAW_DATA | OPENSSL_ZERO_PADDING, $iv );
     $calcmac            = hash_hmac( 'sha256', $ciphertext_raw, $key, $as_binary = true );
-    if ( hash_equals( ( string )$hmac, ( string )$calcmac ) ) {
-      $plaintext = substr( $original_plaintext, 0, strpos( $original_plaintext, "\x00" ) );
-      return $plaintext;
+    if ( hash_equals( $hmac, $calcmac ) ) {
+      return $original_plaintext;
     }
   }
   function getHash( $hashlen ) {
@@ -360,9 +359,6 @@ class Face_Steg {
       return substr( $output, 0, $key_length );
     else
     return bin2hex( substr( $output, 0, $key_length ) );
-  }
-  function htmlspecialchars_recode( $text ) {
-    return strtr( $text, array_flip( get_html_translation_table( HTML_SPECIALCHARS ) ) );
   }
   function translation_str() {
     # reseed every request
