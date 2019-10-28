@@ -8,7 +8,7 @@ class AES {
     $this->set_method( $blocksize, $mode );
   }
   function encrypt( $string, $key ) {
-    if ( false === $this->validate_params( $string ) ) throw new Exception( 'Invlid params!' );
+    if ( false === $this->validate_params( $string ) ) throw new Exception( 'Invalid params!' );
     $cipher_type    = $this->method;
     $iv             = $this->get_iv();
     $ciphertext_raw = ( false !== strpos( $this->method, 'GCM' ) ) ? trim( openssl_encrypt( $string, $cipher_type, $key, OPENSSL_RAW_DATA, $iv, $tag ) ) : trim( openssl_encrypt( $string, $cipher_type, $key, OPENSSL_RAW_DATA, $iv ) );
@@ -17,7 +17,7 @@ class AES {
     return ( false !== strpos( $this->method, 'GCM' ) ) ? base64_encode( $tag ) . ',' . $output : $output;
   }
   function decrypt( $data, $key ) {
-    if ( false === $this->validate_params( $data ) ) throw new Exception( 'Invlid params!' );
+    if ( false === $this->validate_params( $data ) ) throw new Exception( 'Invalid params!' );
     $cipher_type        = $this->method;
     if ( false !== strpos( $this->method, 'GCM' ) ) {
       $get_data           = explode( ',', $data );
@@ -34,7 +34,7 @@ class AES {
     $calcmac            = hash_hmac( 'sha256', $ciphertext_raw, $key, $as_binary = true );
     if ( hash_equals( $hmac, $calcmac ) ) {
       return $original_plaintext;
-    }
+    } else  throw new Exception( 'Invalid params: Failed hash_equals()' );
   }
   protected function get_iv() {
        return openssl_random_pseudo_bytes( openssl_cipher_iv_length( $this->method ) );
