@@ -12,13 +12,14 @@ $detector = new Face_Steg('detection.dat',5);
 $image_name = 'Estella_01.png';
 $detector->face_detect( $image_name );
 
-$secret_text = 'secret message - test 1 2 3';
+$secret_text = 'secret message';
 
 # do crypto
 $pass_code = $detector->getHash( 86 ); // 512-bit
 $cryptostring    = $detector->do_crypto( $secret_text, $pass_code, 0, 0 );
 
 # save the passcode and encrypted text somewhere
+# i.e you could save this to a db
 $file_entry = "Image Name: ". $image_name . "\nPass Code: " . $pass_code . "\nEmbedded Encrypted String:\n" . $cryptostring;
 $fp = fopen( 'passcode.txt', 'w' );
 fwrite( $fp, $file_entry );
