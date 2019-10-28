@@ -378,7 +378,7 @@ class Face_Steg {
   }
   # random seed
   function kakano_tupokanoa() {
-    $ran_string = abs( crc32( $this->hashMake( $this->hashType, ( hexdec( substr( sha1( microtime() ), -8 ) ) & 0x7fffffff ), true ) ) ); // setting true calls MCRYPT_DEV_URANDOM
+    $ran_string = abs( crc32( $this->hashMake( $this->hashType, ( hexdec( substr( sha1( microtime() ), -8 ) ) & 0x7fffffff ), true ) ) );
     return ord( substr( $ran_string, 0, 1 ) ) << 24 | ord( substr( $ran_string, 1, 1 ) ) << 16 | ord( substr( $ran_string, 2, 1 ) ) << 8 | ord( substr( $ran_string, 3, 1 ) );
   }  
 }
