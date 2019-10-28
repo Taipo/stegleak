@@ -16,11 +16,11 @@ $detector->face_detect( $image_name );
 $secret_text = 'secret message';
 
 # do crypto
-$pass_code       = $AES->get_key( 86 ); // for the purposes of testing, autogen a hard passcode
-$cryptostring    = $AES->encrypt( $secret_text, $pass_code );
+$key             = $AES->get_key( 86 ); // for the purposes of testing, autogen a hard passcode
+$cryptostring    = $AES->encrypt( $secret_text, $key );
 
 # save the passcode and encrypted text somewhere
-$file_entry = "Image Name: ". $image_name . "\nPass Code: " . base64_encode( $pass_code ) . "\nEmbedded Encrypted String:\n" . $cryptostring;
+$file_entry = "Image Name: ". $image_name . "\nKey: " . base64_encode( $key ) . "\nEmbedded Encrypted String:\n" . $cryptostring;
 $fp = fopen( 'passcode.txt', 'w' );
 fwrite( $fp, $file_entry );
 fclose( $fp );
