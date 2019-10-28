@@ -313,7 +313,7 @@ class Face_Steg {
     $calcmac            = hash_hmac( 'sha256', $ciphertext_raw, $key, $as_binary = true );
     if ( hash_equals( ( string )$hmac, ( string )$calcmac ) ) {
       $plaintext = substr( $original_plaintext, 0, strpos( $original_plaintext, "\x00" ) );
-    return $plaintext;
+      return $plaintext;
     }
   }
   function getHash( $hashlen ) {
