@@ -1,4 +1,5 @@
 <?php
+include "class_crypto.php";
 include "class_facesteg.php";
 
 // Prevent Caching
@@ -7,11 +8,12 @@ header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT");
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Cache-Control: post-check=0, pre-check=0", false);
 header("Pragma: no-cache");
-
 header('Content-type: text/plain');
+
+$crypto = new crypto( 256, 'CBC' );
 $detector = new Face_Steg('detection.dat',5);
 $detector->face_detect('Encoded_01.png');
 $password = 'add pass code here';
-$decoded = $detector->do_decrypto( $detector->toStegMSG(), base64_decode( $password ) );
+$decoded = $crypto->do_decrypto( $detector->toStegMSG(), base64_decode( $password ) );
 echo "Decoded MSG: " . ( ( strlen( $decoded  ) > 0 ) ? $decoded : 'Error: Incorrect Pass Code!' );
 exit;
