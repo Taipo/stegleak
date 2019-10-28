@@ -296,7 +296,6 @@ class Face_Steg {
     $key            = pack( 'H*', $this->hashMake( 'sha512', $pass_code, false ) );
     $ivlen          = openssl_cipher_iv_length( $cipher = $cipher_type );
     $iv             = openssl_random_pseudo_bytes( $ivlen );
-    $timestamp      = "\x00" . time() . $offset;
     $padding        = ( strlen( $padding > 0 ) ) ? "\x00\x00" . openssl_random_pseudo_bytes( $padding ) : '';
     $ciphertext_raw = openssl_encrypt( $string . $padding, $cipher, $key, OPENSSL_RAW_DATA, $iv );
     $hmac           = hash_hmac( 'sha256', $ciphertext_raw, $key, $as_binary = true );
