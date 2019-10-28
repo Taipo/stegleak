@@ -1,7 +1,8 @@
 <?php
+// error_reporting(E_ALL ^ (E_NOTICE | E_WARNING));
+set_time_limit(0);
 include "class_facesteg.php";
 
-// Prevent Caching
 header("Expires: Tue, 03 Jul 2001 06:00:00 GMT");
 header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT");
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
@@ -15,11 +16,10 @@ $detector->face_detect( $image_name );
 $secret_text = 'secret message';
 
 # do crypto
-$pass_code = $detector->getHash( 86 ); // 512-bit
-$cryptostring    = $detector->do_crypto( $secret_text, $pass_code, 0, 0 );
+$pass_code = $detector->getHash( 86 ); // for the purposes of testing, autogen a hard passcode
+$cryptostring    = $detector->do_crypto( $secret_text, $pass_code );
 
 # save the passcode and encrypted text somewhere
-# i.e you could save this to a db
 $file_entry = "Image Name: ". $image_name . "\nPass Code: " . $pass_code . "\nEmbedded Encrypted String:\n" . $cryptostring;
 $fp = fopen( 'passcode.txt', 'w' );
 fwrite( $fp, $file_entry );
