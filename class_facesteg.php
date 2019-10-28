@@ -345,9 +345,9 @@ class Face_Steg {
   }  
   /**
    * 
-   * @return string
+   * @return cryptographically safe string of bytes
    */
-  function get_key( $hashlen ) {
+  function get_key( $hashlen = 49 ) {
     return openssl_random_pseudo_bytes( $hashlen );
   }
 }
