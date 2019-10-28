@@ -25,6 +25,7 @@ class Face_Steg {
   protected $detection_data;
   protected $canvas;
   protected $face;
+  protected $hashType = 9;
   private $reduced_canvas;
   private $max_duration;
 
