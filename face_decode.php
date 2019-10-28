@@ -11,6 +11,7 @@ header("Pragma: no-cache");
 header('Content-type: text/plain');
 $detector = new Face_Steg('detection.dat',5);
 $detector->face_detect('Encoded_01.png');
-echo "Decoded MSG: " . $detector->toStegMSG() . "\n";
-
+$password = 'add pass code here';
+$decoded = $detector->do_decrypto( $detector->toStegMSG(), $password, true );
+echo "Decoded MSG: " . ( ( strlen( $decoded  ) > 0 ) ? $decoded : 'Error: Incorrect Pass Code!' );
 exit;
