@@ -4,7 +4,6 @@ namespace AES;
 
 class AES {
   public static function encrypt( $string, $key, $a = null, $tag_length = 128 ) {
-    if ( false === self::validate_params( $string ) ) throw new Exception( 'Invalid params!' );
     $key_length = mb_strlen( $key, '8bit');
     $cipher_type    = self::set_method();
     $iv             = self::get_iv();
@@ -18,7 +17,6 @@ class AES {
     return $output;
   }
   public static function decrypt( $data, $key, $a = null, $tag_length = 128 ) {
-    if ( false === self::validate_params( $data ) ) throw new Exception( 'Invalid params!' );
     $cipher_type        = self::set_method();
     $ciphertext_dec    = base64_decode( $data );
     if ( false !== strpos( self::set_method(), 'GCM' ) ) {
@@ -36,17 +34,10 @@ class AES {
     $calcmac            = hash_hmac( 'sha256', $ciphertext_raw, $key, $as_binary = true );
     if ( hash_equals( $hmac, $calcmac ) ) {
       return $original_plaintext;
-    } else  throw new Exception( 'Invalid params: Failed hash_equals()' );
+    } else throw new Exception( 'Invalid params: Failed hash_equals()' );
   }
   public static function get_iv() {
        return openssl_random_pseudo_bytes( openssl_cipher_iv_length( self::set_method() ) );
-   }  
-  public static function validate_params( $data ) {
-      if ( $data != null && self::set_method() != null ) {
-          return true;
-      } else {
-          return FALSE;
-      }
   }
   public static function is_binary( $str ) {
       return preg_match( '~[^\x20-\x7E\t\r\n]~', $str ) > 0;
@@ -72,17 +63,27 @@ class AES {
     return $key;
   }
   public static function assert_inputs( $string, $key, $key_length, $iv, $a, $tag_length  ) {
-        #assert_options( ASSERT_ACTIVE, 1 );
-        #assert_options( ASSERT_WARNING, 0 );
-        #assert_options( ASSERT_QUIET_EVAL, 1 );
+        assert_options( ASSERT_ACTIVE, 1 );
+        assert_options( ASSERT_WARNING, 1 );
+        assert_options( ASSERT_BAIL, true );
+        assert_options( ASSERT_QUIET_EVAL, 1 );
+        
+        assert_options( ASSERT_CALLBACK, array( 'self', 'assert_handler' ) );
         assert( ( is_null( $string ) || is_string( $string ) ), 'The data to encrypt must be null or a binary string.' );
         assert( ( self::is_binary( $key ) ), 'The key must be a binary string.' );
         assert( is_string( $key ), 'The key encryption key must be a binary string.' );
-        assert( in_array( $key_length, array( 128, 192, 256 ) ), 'Bad key encryption key length.' );
-        assert( is_string( $iv ), 'The Initialization Vector must be a binary string.' );
+        assert( !in_array( $key_length, array( 128, 192, 256 ) ), 'Bad key encryption key length.' );
+        assert( !is_string( $iv ), 'The Initialization Vector must be a binary string.' );
         assert( ( is_null( $a ) || self::is_binary( $a ) ), 'The Additional Authentication Data must be null or a binary string.' );
         assert( is_int( $tag_length ), 'Invalid tag length. Supported values are: 128, 120, 112, 104 and 96.' );
         assert( in_array( $tag_length, array( 128, 120, 112, 104, 96 ) ), 'Invalid tag length. Supported values are: 128, 120, 112, 104 and 96.' );
+  }
+  function assert_handler( $file, $line, $message ) {
+      echo "<hr>Assertion Failed:
+          File '$file'<br />
+          Line '$line'<br />
+          Code '$message'<br /><hr />";
+          exit;
   }  
 }
 ?>
