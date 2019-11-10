@@ -11,7 +11,7 @@ header("Pragma: no-cache");
 use AES\AES;
 
 $detector = new Face_Steg('detection.dat',5);
-$detector->face_detect('face_encode.php.png');
+$detector->face_detect('Encoded_01.png');
 $key     = "grabthekeyfrom_passcode.txt";
 $a = 'feedfacedeadbeeffeedfacedeadbeefabaddad2'; // this is added for future use for example 2fa
 $decoded = AES::decrypt( $detector->toStegMSG(), base64_decode( $key ), $a );
