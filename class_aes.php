@@ -21,7 +21,7 @@ class AES {
     $cipher_type        = self::set_method();
     $ciphertext_dec     = base64_decode( $data );
     if ( false !== strpos( self::set_method(), 'GCM' ) ) {
-      $new_tag_length = $tag_length / 8;
+      $new_tag_length   = $tag_length / 8;
       $tag              = substr( $ciphertext_dec, 0, $new_tag_length );
     }
     if ( !is_null( $a ) && !empty( $a ) ) {
