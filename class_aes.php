@@ -3,20 +3,22 @@
 namespace AES;
 
 final class AES {
-  public static function encrypt( $string, $key, $a, $tag_length = 128 ) {
+  public static function encrypt( $string, $key, $a = null, $tag_length = 128 ) {
     if ( false === self::validate_params( $string ) ) throw new Exception( 'Invalid params!' );
     $key_length = mb_strlen( $key, '8bit');
     $mode = 'aes-'.( $key_length ).'-GCM';
     $cipher_type    = self::set_method();
     $iv             = self::get_iv();
-    $a = hex2bin( $a );
+    if ( !is_null( $a ) && !empty( $a ) ) {
+      $a = hex2bin( $a );
+    } else $a = null;
     self::assert_inputs( $string, $key, $key_length, $iv, $a, $tag_length );
-    $ciphertext_raw = ( false !== strpos( self::set_method(), 'GCM' ) ) ? trim( openssl_encrypt( $string, $cipher_type, $key, OPENSSL_RAW_DATA, $iv, $tag, $a, $tag_length / 8 ) ) : trim( openssl_encrypt( $string, $cipher_type, $key, OPENSSL_RAW_DATA, $iv ) );
+    $ciphertext_raw = ( false !== strpos( self::set_method(), 'GCM' ) ) ? trim( openssl_encrypt( $string, $cipher_type, $key, OPENSSL_RAW_DATA, $iv, $tag, ( null === $a ? '' : $a ), $tag_length / 8 ) ) : trim( openssl_encrypt( $string, $cipher_type, $key, OPENSSL_RAW_DATA, $iv ) );
     $hmac           = hash_hmac( 'sha256', $ciphertext_raw, $key, $as_binary = true );
     $output         = ( false !== strpos( self::set_method(), 'GCM' ) ) ? base64_encode( $tag . $iv . $hmac . $ciphertext_raw ) : base64_encode( $iv . $hmac . $ciphertext_raw );
     return $output;
   }
-  public static function decrypt( $data, $key, $a, $tag_length = 128 ) {
+  public static function decrypt( $data, $key, $a = null, $tag_length = 128 ) {
     if ( false === self::validate_params( $data ) ) throw new Exception( 'Invalid params!' );
     $cipher_type        = self::set_method();
     $ciphertext_dec    = base64_decode( $data );
@@ -24,7 +26,9 @@ final class AES {
       $tag_length = $tag_length / 8;
       $tag                = substr( $ciphertext_dec, 0, $tag_length );
     }
-    $a = hex2bin( $a );
+    if ( !is_null( $a ) && !empty( $a ) ) {
+      $a = hex2bin( $a );
+    } else $a = null;
     $ivlen              = openssl_cipher_iv_length( $cipher = $cipher_type );
     $iv                 = substr( $ciphertext_dec, $tag_length, $ivlen );
     $hmac               = substr( $ciphertext_dec, $ivlen + $tag_length, $sha2len = 32 );
