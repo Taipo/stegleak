@@ -6,7 +6,6 @@ final class AES {
   public static function encrypt( $string, $key, $a = null, $tag_length = 128 ) {
     if ( false === self::validate_params( $string ) ) throw new Exception( 'Invalid params!' );
     $key_length = mb_strlen( $key, '8bit');
-    $mode = 'aes-'.( $key_length ).'-GCM';
     $cipher_type    = self::set_method();
     $iv             = self::get_iv();
     if ( !is_null( $a ) && !empty( $a ) ) {
