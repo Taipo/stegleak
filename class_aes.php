@@ -69,11 +69,12 @@ class AES {
         assert_options( ASSERT_QUIET_EVAL, 1 );
         
         assert_options( ASSERT_CALLBACK, array( 'self', 'assert_handler' ) );
+    
         assert( ( is_null( $string ) || is_string( $string ) ), 'The data to encrypt must be null or a binary string.' );
         assert( ( self::is_binary( $key ) ), 'The key must be a binary string.' );
         assert( is_string( $key ), 'The key encryption key must be a binary string.' );
-        assert( !in_array( $key_length, array( 128, 192, 256 ) ), 'Bad key encryption key length.' );
-        assert( !is_string( $iv ), 'The Initialization Vector must be a binary string.' );
+        assert( in_array( $key_length, array( 128, 192, 256 ) ), 'Bad key encryption key length.' );
+        assert( is_string( $iv ), 'The Initialization Vector must be a binary string.' );
         assert( ( is_null( $a ) || self::is_binary( $a ) ), 'The Additional Authentication Data must be null or a binary string.' );
         assert( is_int( $tag_length ), 'Invalid tag length. Supported values are: 128, 120, 112, 104 and 96.' );
         assert( in_array( $tag_length, array( 128, 120, 112, 104, 96 ) ), 'Invalid tag length. Supported values are: 128, 120, 112, 104 and 96.' );
