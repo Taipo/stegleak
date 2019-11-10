@@ -2,7 +2,7 @@
 
 namespace AES;
 
-final class AES {
+class AES {
   public static function encrypt( $string, $key, $a = null, $tag_length = 128 ) {
     if ( false === self::validate_params( $string ) ) throw new Exception( 'Invalid params!' );
     $key_length = mb_strlen( $key, '8bit');
