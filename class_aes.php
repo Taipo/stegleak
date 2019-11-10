@@ -4,9 +4,9 @@ namespace AES;
 
 class AES {
   public static function encrypt( $string, $key, $a = null, $tag_length = 128 ) {
-    $key_length = mb_strlen( $key, '8bit');
-    $cipher_type    = self::set_method();
-    $iv             = self::get_iv();
+    $key_length         = mb_strlen( $key, '8bit');
+    $cipher_type        = self::set_method();
+    $iv                 = self::get_iv();
     if ( !is_null( $a ) && !empty( $a ) ) {
       $a = hex2bin( $a );
     } else $a = null;
