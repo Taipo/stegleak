@@ -17,19 +17,21 @@ class AES {
     return $output;
   }
   public static function decrypt( $data, $key, $a = null, $tag_length = 128 ) {
+    $key_length         = mb_strlen( $key, '8bit');
     $cipher_type        = self::set_method();
     $ciphertext_dec     = base64_decode( $data );
     if ( false !== strpos( self::set_method(), 'GCM' ) ) {
-      $tag_length = $tag_length / 8;
-      $tag              = substr( $ciphertext_dec, 0, $tag_length );
+      $new_tag_length = $tag_length / 8;
+      $tag              = substr( $ciphertext_dec, 0, $new_tag_length );
     }
     if ( !is_null( $a ) && !empty( $a ) ) {
       $a = hex2bin( $a );
     } else $a = null;
     $ivlen              = openssl_cipher_iv_length( $cipher = $cipher_type );
-    $iv                 = substr( $ciphertext_dec, $tag_length, $ivlen );
-    $hmac               = substr( $ciphertext_dec, $ivlen + $tag_length, $sha2len = 32 );
-    $ciphertext_raw     = substr( $ciphertext_dec, $ivlen + $sha2len + $tag_length );
+    $iv                 = substr( $ciphertext_dec, $new_tag_length, $ivlen );
+    $hmac               = substr( $ciphertext_dec, $ivlen + $new_tag_length, $sha2len = 32 );
+    $ciphertext_raw     = substr( $ciphertext_dec, $ivlen + $sha2len + $new_tag_length );
+    self::assert_inputs( $ciphertext_raw, $key, $key_length, $iv, $a, $tag_length );
     $original_plaintext = ( false !== strpos( self::set_method(), 'GCM' ) ) ? trim( openssl_decrypt( $ciphertext_raw, $cipher, $key, OPENSSL_RAW_DATA, $iv, $tag, ( null === $a ? '' : $a ) ) ) : trim( openssl_decrypt( $ciphertext_raw, $cipher, $key, OPENSSL_RAW_DATA, $iv ) );
     $calcmac            = hash_hmac( 'sha256', $ciphertext_raw, $key, $as_binary = true );
     if ( hash_equals( $hmac, $calcmac ) ) {
@@ -67,9 +69,7 @@ class AES {
         assert_options( ASSERT_WARNING, 1 );
         assert_options( ASSERT_BAIL, true );
         assert_options( ASSERT_QUIET_EVAL, 1 );
-
         assert_options( ASSERT_CALLBACK, array( 'self', 'assert_handler' ) );
-
         assert( ( is_null( $string ) || is_string( $string ) ), 'The data to encrypt must be null or a binary string.' );
         assert( ( self::is_binary( $key ) ), 'The key must be a binary string.' );
         assert( is_string( $key ), 'The key encryption key must be a binary string.' );
